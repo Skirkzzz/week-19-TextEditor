@@ -1,14 +1,14 @@
-const { offlineFallback, warmStrategyCache } = require('workbox-recipes');
-const { CacheFirst } = require('workbox-strategies');
-const { registerRoute } = require('workbox-routing');
-const { CacheableResponsePlugin } = require('workbox-cacheable-response');
-const { ExpirationPlugin } = require('workbox-expiration');
-const { precacheAndRoute } = require('workbox-precaching/precacheAndRoute');
+const { offlineFallback, warmStrategyCache } = require("workbox-recipes");
+const { CacheFirst } = require("workbox-strategies");
+const { registerRoute } = require("workbox-routing");
+const { CacheableResponsePlugin } = require("workbox-cacheable-response");
+const { ExpirationPlugin } = require("workbox-expiration");
+const { precacheAndRoute } = require("workbox-precaching/precacheAndRoute");
 
 precacheAndRoute(self.__WB_MANIFEST);
 
 const pageCache = new CacheFirst({
-  cacheName: 'page-cache',
+  cacheName: "page-cache",
   plugins: [
     new CacheableResponsePlugin({
       statuses: [0, 200],
@@ -20,11 +20,19 @@ const pageCache = new CacheFirst({
 });
 
 warmStrategyCache({
-  urls: ['/index.html', '/'],
+  urls: ["/index.html", "/"],
   strategy: pageCache,
 });
 
-registerRoute(({ request }) => request.mode === 'navigate', pageCache);
+registerRoute(({ request }) => request.mode === "navigate", pageCache);
 
 // TODO: Implement asset caching
-registerRoute();
+export const registerRoute = () => {
+  // Check that service workers are supported
+  if ("serviceWorker" in navigator) {
+    // Use the window load event to keep the page load performant
+    window.addEventListener("load", () => {
+      navigator.serviceWorker.register("/service-worker.js");
+    });
+  }
+};
